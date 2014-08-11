@@ -20,9 +20,12 @@ define(['breeze', 'knockout'], function(breeze, ko) {
           continue;
       if (p === "_backingStore")
           continue;
-      var val = entity[p];
       
       var propDescr = getES5PropDescriptor(entity, p);
+      if(propDescr && !ko.isObservable(propDescr.get)){
+         continue;
+      }
+      var val = entity[p];
       if (propDescr && propDescr.get) {
           names.push(p);
       }
@@ -58,9 +61,13 @@ define(['breeze', 'knockout'], function(breeze, ko) {
     entity.__observable__ = {};
     stype.getProperties().forEach(function(prop) {
       var propName = prop.name;
-      var val = initializeValueForProp(entity, prop, val);
-      entity[propName] = val;
-      makePropDescription(entity, prop, val);
+      var es5Descriptor = getES5PropDescriptor(proto, propName);
+      if(!es5Descriptor){
+        var val = entity[propName];
+        val = initializeValueForProp(entity, prop, val);
+        entity[propName] = val;
+        makePropDescription(entity, prop, val);
+      }
     });
     
     entity.__full__ = true;
